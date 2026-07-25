@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, getAllusers, login, logoutuser, verifyemail, refreshAccessToken, forgotpasswordrequest,resetforgotpassword,getcurrentuser,changecurrentpassword,resendemailverification } from "../controllers/auth.controllers.js";
+import { registerUser, getAllusers, login, logoutuser, verifyemail, refreshAccessToken, forgotpasswordrequest,resetforgotpassword,getcurrentuser,changecurrentpassword,resendemailverification, checkEmailAvailability } from "../controllers/auth.controllers.js";
 import { validate } from "../middlewares/validator.middleware.js";
 import { userLoginValidator, userRegisterValidator,userChangeCurrentPasswordValidator,userForgotPasswordValidator,userResetForgotPasswordValidator } from "../validators/validator.index.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";
@@ -7,6 +7,7 @@ import { VerifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router()
 
 //unsecured routes
+router.route("/check-email").get(checkEmailAvailability);
 router.route("/register").post(userRegisterValidator(),validate,registerUser);
 router.route("/users").get(getAllusers);
 router.route("/login").post(userLoginValidator(),validate,login)

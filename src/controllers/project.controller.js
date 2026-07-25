@@ -1,5 +1,6 @@
 import Project from '../models/project.models.js';
 import { User } from '../models/user.models.js';
+import Workspace from '../models/workspace.models.js';
 import { asynchandler } from '../utils/asynchandler.js';
 // src/controllers/project.controller.js
 
@@ -7,7 +8,7 @@ import { asynchandler } from '../utils/asynchandler.js';
 // Helper to check if user is project admin
 const isProjectAdmin = (project, userId) => {
     return project.members.some(
-        (m) => m.user.toString() === userId.toString() && m.role === 'admin'
+        (m) => m.user.toString() === userId.toString() && (m.role === 'admin' || m.role === 'project_manager')
     );
 };
 
@@ -19,14 +20,48 @@ const isProjectOwner = (project, userId) => {
 // Create a new project
 const createProject = asynchandler(async (req, res, next) => {
     try {
-        const { name, description } = req.body;
+        let { name, description, key, workspaceId } = req.body;
         const ownerId = req.user._id;
+
+        if (!name) {
+            return res.status(400).json({ message: "Project name is required" });
+        }
+
+        // Find or auto-create a workspace for the user if workspaceId is not provided
+        let workspace;
+        if (workspaceId) {
+            workspace = await Workspace.findById(workspaceId);
+        }
+        if (!workspace) {
+            workspace = await Workspace.findOne({ owner: ownerId });
+        }
+        if (!workspace) {
+            workspace = await Workspace.create({
+                name: `${req.user.username || "My"}'s Workspace`,
+                slug: `workspace-${ownerId}-${Date.now()}`,
+                owner: ownerId,
+                members: [{ user: ownerId, role: "owner" }]
+            });
+        }
+
+        // Auto-generate project key if not provided (e.g. "Alpha Project" => "ALPHA")
+        if (!key) {
+            const cleanName = name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+            let baseKey = cleanName.slice(0, 6) || "PROJ";
+            key = baseKey;
+            const count = await Project.countDocuments({ workspace: workspace._id, key: new RegExp(`^${baseKey}`) });
+            if (count > 0) {
+                key = `${baseKey}${count + 1}`;
+            }
+        }
 
         const project = new Project({
             name,
-            description,
+            description: description || "",
             owner: ownerId,
-            members: [{ user: ownerId, role: 'admin' }],
+            workspace: workspace._id,
+            key,
+            members: [{ user: ownerId, role: 'project_manager' }],
         });
 
         await project.save();
@@ -68,22 +103,33 @@ const getProjectById = async (req, res, next) => {
     }
 };
 
-// Update project (only owner or system admin)
+// Update project (only owner, project manager, or system admin)
 const updateProject = async (req, res, next) => {
     try {
         const { projectId } = req.params;
         const userId = req.user._id;
-        const updates = req.body;
 
         const project = await Project.findById(projectId);
         if (!project) return res.status(404).json({ message: 'Project not found' });
 
-        // Assuming req.user.role === 'admin' is system-level admin
-        if (!isProjectOwner(project, userId) && req.user.role !== 'admin') {
+        const canUpdate = isProjectOwner(project, userId) || 
+                          isProjectAdmin(project, userId) || 
+                          req.user.systemRole === 'super_admin' || 
+                          req.user.role === 'admin';
+
+        if (!canUpdate) {
             return res.status(403).json({ message: 'Not authorized to update project' });
         }
 
-        Object.assign(project, updates);
+        // Whitelist allowed fields to prevent arbitrary property pollution
+        const { name, description, category, methodology, status, visibility } = req.body;
+        if (name !== undefined) project.name = name;
+        if (description !== undefined) project.description = description;
+        if (category !== undefined) project.category = category;
+        if (methodology !== undefined) project.methodology = methodology;
+        if (status !== undefined) project.status = status;
+        if (visibility !== undefined) project.visibility = visibility;
+
         await project.save();
         res.json(project);
     } catch (err) {
@@ -91,7 +137,7 @@ const updateProject = async (req, res, next) => {
     }
 };
 
-// Delete project (only owner or system admin)
+// Delete project (only owner, project manager, or system admin)
 const deleteProject = async (req, res, next) => {
     try {
         const { projectId } = req.params;
@@ -100,12 +146,17 @@ const deleteProject = async (req, res, next) => {
         const project = await Project.findById(projectId);
         if (!project) return res.status(404).json({ message: 'Project not found' });
 
-        if (!isProjectOwner(project, userId) && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized to delete project' });
+        const canDelete = isProjectOwner(project, userId) || 
+                          isProjectAdmin(project, userId) || 
+                          req.user.systemRole === 'super_admin' || 
+                          req.user.role === 'admin';
+
+        if (!canDelete) {
+            return res.status(403).json({ message: 'Not authorized to delete this project' });
         }
 
         await project.deleteOne();
-        res.json({ message: 'Project deleted' });
+        res.json({ success: true, message: 'Project deleted successfully' });
     } catch (err) {
         next(err);
     }
@@ -236,10 +287,10 @@ const getAllProjects = asynchandler(async(req,res)=>{
     } = req.query;
 
 
-    //2.Filtering build the filter object based on query params agar koi param nahi hai to empty filter object
-    const filter={};
-    if(status) filter.status=status;
-    if(priority) filter.priority=priority;
+    // 2. Scope filter to requesting user's project membership
+    const filter = { "members.user": req.user._id };
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
     
 
     //3. Sorting Determine sort direction ascending or descending

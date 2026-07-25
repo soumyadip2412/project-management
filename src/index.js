@@ -31,4 +31,4 @@ connectDB()
 
 // console.log("value:", myusername)
 
-logger.info("starting of a backend project journey");
+logger.info("starting of a backend project journey");
