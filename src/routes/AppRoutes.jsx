@@ -19,6 +19,7 @@ const ProjectsPage = lazy(() => import("@/pages/projects/ProjectsPage"));
 const ProjectDetailsPage = lazy(() => import("@/pages/projects/ProjectDetailsPage"));
 const AnalyticsPage = lazy(() => import("@/pages/analytics/AnalyticsPage"));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
+const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
 const NotFoundPage = lazy(() => import("@/pages/not-found/NotFoundPage"));
 
 export function AppRoutes() {
@@ -51,13 +52,21 @@ export function AppRoutes() {
           <Route
             path="projects/:projectId"
             element={
-              <RoleRoute allowedRoles={["admin", "project_admin", "member"]}>
+              <RoleRoute allowedRoles={["admin", "project_admin", "member", "developer", "maintainer", "super_admin"]}>
                 <ProjectDetailsPage />
               </RoleRoute>
             }
           />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="admin"
+            element={
+              <RoleRoute allowedRoles={["super_admin", "org_admin"]}>
+                <AdminPage />
+              </RoleRoute>
+            }
+          />
         </Route>
       </Route>
 

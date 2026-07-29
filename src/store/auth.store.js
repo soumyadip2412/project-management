@@ -17,10 +17,14 @@ export const useAuthStore = create(
       setUser: (user) => set({ user }),
       isAuthenticated: () => Boolean(get().user),
       isRoleAllowed: (roles = []) => {
-        const currentRole = get().user?.role;
+        const user = get().user;
+        if (!user) return false;
+        const currentRole = user.systemRole || user.role || "member";
         if (!roles.length) return true;
+        if (currentRole === "super_admin") return true;
         return roles.includes(currentRole);
       },
+
     }),
     {
       name: "project-camp-auth",
