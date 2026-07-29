@@ -196,8 +196,8 @@ taskSchema.index({ project: 1, issueType: 1 });
 taskSchema.index({ project: 1, priority: 1 });
 taskSchema.index({ assignees: 1 });
 taskSchema.index({ reporter: 1 });
-taskSchema.index({ issueKey: 1 }, { unique: true, sparse: true });
 taskSchema.index({ parent: 1 });
+
 taskSchema.index({ epicLink: 1 });
 taskSchema.index({ dueDate: 1 });
 taskSchema.index({ labels: 1 });

@@ -46,3 +46,95 @@ export const canManageProject = (project, user) => {
 
   return isProjectOwner(project, userId) || isProjectAdmin(project, userId);
 };
+
+/**
+ * Enterprise Permission Matrix
+ */
+export const RolePermissions = {
+  super_admin: ["*:*"],
+  org_admin: [
+    "workspace:*",
+    "project:*",
+    "sprint:*",
+    "task:*",
+    "comment:*",
+    "note:*",
+    "label:*"
+  ],
+  admin: [
+    "workspace:read",
+    "project:*",
+    "sprint:*",
+    "task:*",
+    "comment:*",
+    "note:*",
+    "label:*"
+  ],
+  maintainer: [
+    "workspace:read",
+    "project:read",
+    "sprint:*",
+    "task:create",
+    "task:read",
+    "task:update",
+    "task:assign",
+    "task:move",
+    "comment:*",
+    "note:*",
+    "label:*"
+  ],
+  developer: [
+    "workspace:read",
+    "project:read",
+    "sprint:read",
+    "task:create",
+    "task:read",
+    "task:update",
+    "comment:create",
+    "comment:read",
+    "comment:update_own",
+    "note:read",
+    "label:read"
+  ],
+  viewer: [
+    "workspace:read",
+    "project:read",
+    "sprint:read",
+    "task:read",
+    "comment:read",
+    "note:read",
+    "label:read"
+  ],
+  member: [
+    "workspace:read",
+    "project:read",
+    "sprint:read",
+    "task:read",
+    "comment:read"
+  ]
+};
+
+/**
+ * Resolves user's effective role combining system and project role
+ */
+export const resolveEffectiveRole = (systemRole, projectRole) => {
+  if (systemRole === SystemRolesEnum.SUPER_ADMIN || systemRole === "super_admin") return "super_admin";
+  if (systemRole === SystemRolesEnum.ORG_ADMIN || systemRole === "org_admin") return "org_admin";
+  if (projectRole) return projectRole;
+  return systemRole || "member";
+};
+
+/**
+ * Checks if effective role has permission for resource:action
+ */
+export const hasPermission = (role, resource, action) => {
+  const permissions = RolePermissions[role] || RolePermissions["member"];
+  if (!permissions) return false;
+  if (permissions.includes("*:*")) return true;
+
+  const targetPerm = `${resource}:${action}`;
+  const wildcardResource = `${resource}:*`;
+
+  return permissions.includes(targetPerm) || permissions.includes(wildcardResource);
+};
+

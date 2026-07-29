@@ -23,3 +23,5 @@ export const VerifyJWT = asynchandler(async(req,res,next)=>{
     }
 
 })
+
+export const verifyJWT = VerifyJWT;

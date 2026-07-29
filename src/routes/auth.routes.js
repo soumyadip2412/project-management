@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, getAllusers, login, logoutuser, verifyemail, refreshAccessToken, forgotpasswordrequest,resetforgotpassword,getcurrentuser,changecurrentpassword,resendemailverification, checkEmailAvailability } from "../controllers/auth.controllers.js";
+import { registerUser, getAllusers, login, logoutuser, verifyemail, refreshAccessToken, forgotpasswordrequest,resetforgotpassword,getcurrentuser,changecurrentpassword,resendemailverification, checkEmailAvailability, updateProfile } from "../controllers/auth.controllers.js";
 import { validate } from "../middlewares/validator.middleware.js";
 import { userLoginValidator, userRegisterValidator,userChangeCurrentPasswordValidator,userForgotPasswordValidator,userResetForgotPasswordValidator } from "../validators/validator.index.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";
@@ -22,6 +22,7 @@ router.route("/reset-password/:resetToken").post(userResetForgotPasswordValidato
 router.route("/logout").post(VerifyJWT,logoutuser)
 router.route("/current-user").post(VerifyJWT,getcurrentuser)
 router.route("/change-password").post(VerifyJWT,userChangeCurrentPasswordValidator(),validate,changecurrentpassword)
+router.route("/update-profile").put(VerifyJWT,updateProfile)
 router.route("/resend-email-verification").post(VerifyJWT,resendemailverification)
 
 export default router //default export ko  kuch bhi name dekar import kar skte hai jaise healthCheckRouters use hua idhar app.js mein 

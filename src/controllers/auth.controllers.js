@@ -376,6 +376,48 @@ const checkEmailAvailability = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, { available: !user }, "Email availability checked"));
 });
 
+const updateProfile = asynchandler(async (req, res) => {
+  const { fullName, jobTitle, department, phone, timezone, locale, preferences } = req.body;
+
+  const user = await User.findById(req.user._id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  // Whitelist safe fields only — prevent privilege escalation
+  if (fullName !== undefined) user.fullName = fullName;
+  if (jobTitle !== undefined) user.jobTitle = jobTitle;
+  if (department !== undefined) user.department = department;
+  if (phone !== undefined) user.phone = phone;
+  if (timezone !== undefined) user.timezone = timezone;
+  if (locale !== undefined) user.locale = locale;
+
+  // Merge preferences safely
+  if (preferences) {
+    if (preferences.theme) user.preferences.theme = preferences.theme;
+    if (preferences.notifications) {
+      if (preferences.notifications.email !== undefined)
+        user.preferences.notifications.email = preferences.notifications.email;
+      if (preferences.notifications.inApp !== undefined)
+        user.preferences.notifications.inApp = preferences.notifications.inApp;
+      if (preferences.notifications.push !== undefined)
+        user.preferences.notifications.push = preferences.notifications.push;
+    }
+    if (preferences.defaultProjectView)
+      user.preferences.defaultProjectView = preferences.defaultProjectView;
+    if (preferences.density)
+      user.preferences.density = preferences.density;
+  }
+
+  await user.save({ validateBeforeSave: false });
+
+  const updatedUser = await User.findById(user._id).select(
+    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry -forgetPasswordToken -forgetPasswordExpiry"
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, updatedUser, "Profile updated successfully")
+  );
+});
+
 export {
   login,
   logoutuser,
@@ -389,5 +431,6 @@ export {
   forgotpasswordrequest,
   resetforgotpassword,
   changecurrentpassword,
-  checkEmailAvailability
+  checkEmailAvailability,
+  updateProfile
 };

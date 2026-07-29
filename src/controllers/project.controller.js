@@ -169,8 +169,9 @@ const getProjectMembers = asynchandler(async(req,res)=>{
     const {projectId} = req.params;
     //2. get user id from request
     const userId = req.user._id;
-    //3. find project in database
-    const project = await Project.findById(projectId);
+    //3. find project in database with populated members
+    const project = await Project.findById(projectId)
+        .populate("members.user", "fullName username email avatar systemRole jobTitle department");
 
     //4. validate project exists 
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -178,15 +179,14 @@ const getProjectMembers = asynchandler(async(req,res)=>{
 
     //5. validate user is member of project
     const isMember = project.members.some(
-        (m) => m.user.toString() === userId.toString()
+        (m) => m.user?._id?.toString() === userId.toString()
     );
     if (!isMember)
         return res.status(403).json({ message: 'Not authorized for this project' });
 
 
-    //6.populate members with their details
-    
-    res.json(project);
+    //6. Return populated members
+    res.json({ members: project.members, projectName: project.name, projectKey: project.key });
 })
 // Add member to project (only project admin)
 const addMemberToProject = async (req, res, next) => {
