@@ -87,7 +87,8 @@ const getProjectById = async (req, res, next) => {
     try {
         const { projectId } = req.params;
         const userId = req.user._id;
-        const project = await Project.findById(projectId);
+        const project = await Project.findById(projectId)
+            .populate('members.user', 'fullName username email avatar');
 
         if (!project) return res.status(404).json({ message: 'Project not found' });
 
@@ -192,7 +193,7 @@ const getProjectMembers = asynchandler(async(req,res)=>{
 const addMemberToProject = async (req, res, next) => {
     try {
         const { projectId } = req.params;
-        const { email, role = 'member' } = req.body;
+        const { email, role = 'developer' } = req.body;
         const userId = req.user._id;
 
         const project = await Project.findById(projectId);
@@ -211,7 +212,19 @@ const addMemberToProject = async (req, res, next) => {
         if (alreadyMember)
             return res.status(400).json({ message: 'User already a member' });
 
-        project.members.push({ user: userToAdd._id, role });
+        const alreadyInvited = project.invitations?.some(
+            (i) => i.user.toString() === userToAdd._id.toString()
+        );
+        if (alreadyInvited)
+            return res.status(400).json({ message: 'User already has a pending invitation' });
+
+        if (!project.invitations) project.invitations = [];
+        
+        project.invitations.push({ 
+            user: userToAdd._id, 
+            role, 
+            invitedBy: userId 
+        });
         await project.save();
 
         res.json(project);
@@ -323,6 +336,80 @@ const getAllProjects = asynchandler(async(req,res)=>{
     })
 })
 
+// ─── Invitation Management ─────────────────
+
+const getPendingInvitations = asynchandler(async (req, res) => {
+    const userId = req.user._id;
+    const projects = await Project.find({ "invitations.user": userId })
+        .select("name key description invitations owner")
+        .populate("invitations.invitedBy", "fullName username email")
+        .populate("owner", "fullName username email");
+
+    // Filter down to only this user's invitations
+    const pendingInvites = projects.map(p => {
+        const invite = p.invitations.find(i => i.user.toString() === userId.toString());
+        return {
+            projectId: p._id,
+            projectName: p.name,
+            projectKey: p.key,
+            projectDescription: p.description,
+            owner: p.owner,
+            role: invite.role,
+            invitedBy: invite.invitedBy,
+            invitedAt: invite.invitedAt
+        };
+    });
+
+    res.json({ success: true, invitations: pendingInvites });
+});
+
+const acceptInvitation = asynchandler(async (req, res) => {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const inviteIndex = project.invitations?.findIndex(i => i.user.toString() === userId.toString());
+    if (inviteIndex === -1 || inviteIndex === undefined) {
+        return res.status(404).json({ message: 'Invitation not found' });
+    }
+
+    const invite = project.invitations[inviteIndex];
+    
+    // Add to members
+    project.members.push({
+        user: invite.user,
+        role: invite.role
+    });
+
+    // Remove from invitations
+    project.invitations.splice(inviteIndex, 1);
+    
+    await project.save();
+
+    res.json({ success: true, message: 'Invitation accepted', project });
+});
+
+const rejectInvitation = asynchandler(async (req, res) => {
+    const { projectId } = req.params;
+    const userId = req.user._id;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const inviteIndex = project.invitations?.findIndex(i => i.user.toString() === userId.toString());
+    if (inviteIndex === -1 || inviteIndex === undefined) {
+        return res.status(404).json({ message: 'Invitation not found' });
+    }
+
+    // Remove from invitations
+    project.invitations.splice(inviteIndex, 1);
+    await project.save();
+
+    res.json({ success: true, message: 'Invitation rejected' });
+});
+
 export {
     createProject,
     getUserProjects,
@@ -333,5 +420,8 @@ export {
     updateMemberRole,
     removeMemberFromProject,
     getAllProjects,
-    getProjectMembers
+    getProjectMembers,
+    getPendingInvitations,
+    acceptInvitation,
+    rejectInvitation
 };

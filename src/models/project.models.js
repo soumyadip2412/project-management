@@ -82,6 +82,23 @@ const projectSchema = new Schema({
         },
         joinedAt: { type: Date, default: Date.now }
     }],
+    
+    // ─── Pending Invitations ─────────────────
+    invitations: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        role: {
+            type: String,
+            enum: AvailableProjectRoles
+        },
+        invitedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        invitedAt: { type: Date, default: Date.now }
+    }],
 
     // ─── Configurable Workflows ──────────────
     settings: {

@@ -10,7 +10,10 @@ import {
     getProjectMembers,
     addMemberToProject,
     updateMemberRole,
-    removeMemberFromProject
+    removeMemberFromProject,
+    getPendingInvitations,
+    acceptInvitation,
+    rejectInvitation
 } from "../controllers/project.controller.js";
 
 const router = Router();
@@ -26,6 +29,10 @@ router.route("/")
 router.route("/all")
     .get(getAllProjects);
 
+// Invitations (must come before /:projectId to avoid conflict)
+router.route("/invitations/me")
+    .get(getPendingInvitations);
+
 router.route("/:projectId")
     .get(getProjectById)
     .put(updateProject)
@@ -39,5 +46,12 @@ router.route("/:projectId/members")
 router.route("/:projectId/members/:userId")
     .put(updateMemberRole)
     .delete(removeMemberFromProject);
+
+// Project invitation actions
+router.route("/:projectId/invitations/accept")
+    .post(acceptInvitation);
+
+router.route("/:projectId/invitations/reject")
+    .post(rejectInvitation);
 
 export default router;

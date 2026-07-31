@@ -5,38 +5,33 @@ import { ApiError } from "../utils/api-errors.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asynchandler } from "../utils/asynchandler.js";
 
-// Helper functions for authorization
-const isProjectMember = (project, userId) => {
-    return project.members.some((m) => m.user.toString() === userId.toString());
-};
-
-const isProjectAdmin = (project, userId) => {
-    return project.members.some(
-        (m) => m.user.toString() === userId.toString() && m.role === 'admin'
-    );
-};
+import { isProjectAdmin, isProjectMember } from "../utils/permissions.js";
 
 // --- TASK OPERATIONS ---
 
 const createTask = asynchandler(async (req, res) => {
     const { projectId } = req.params;
-    const { title, description, assignee, status } = req.body;
+    const { title, description, assignees, status, issueType, priority, storyPoints } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
 
-    if (!isProjectAdmin(project, req.user._id)) {
-        throw new ApiError(403, "Only project admins can create tasks");
+    if (!isProjectMember(project, req.user._id)) {
+        throw new ApiError(403, "Only project members can create tasks");
     }
 
     const task = await Task.create({
         title,
         description,
         project: projectId,
-        assignee: assignee || null,
-        status: status || 'todo'
+        assignees: assignees || [],
+        issueType,
+        priority,
+        storyPoints,
+        reporter: req.user._id,
+        status: status?.name || status || 'todo'
     });
 
     return res.status(201).json(new ApiResponse(201, task, "Task created successfully"));
@@ -61,7 +56,7 @@ const getProjectTasks = asynchandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const tasks = await Task.find(filter)
-        .populate("assignee", "fullName username email")
+        .populate("assignees", "fullName username email")
         .skip(skip)
         .limit(parseInt(limit))
         .sort({ createdAt: -1 });
@@ -86,7 +81,7 @@ const getTaskById = asynchandler(async (req, res) => {
     if (!isProjectMember(project, req.user._id)) throw new ApiError(403, "Not authorized");
 
     const task = await Task.findOne({ _id: taskId, project: projectId })
-        .populate("assignee", "fullName username email");
+        .populate("assignees", "fullName username email");
 
     if (!task) {
         throw new ApiError(404, "Task not found");
@@ -97,14 +92,14 @@ const getTaskById = asynchandler(async (req, res) => {
 
 const updateTask = asynchandler(async (req, res) => {
     const { projectId, taskId } = req.params;
-    const { title, description, assignee, status } = req.body;
+    const { title, description, assignees, status, issueType, priority, storyPoints } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) throw new ApiError(404, "Project not found");
     
-    // According to PRD, Admin/Project Admin can update
-    if (!isProjectAdmin(project, req.user._id)) {
-        throw new ApiError(403, "Only project admins can update tasks");
+    // According to PRD, Admin/Project Admin can update. Let's allow members to update.
+    if (!isProjectMember(project, req.user._id)) {
+        throw new ApiError(403, "Only project members can update tasks");
     }
 
     const task = await Task.findOneAndUpdate(
@@ -113,8 +108,11 @@ const updateTask = asynchandler(async (req, res) => {
             $set: {
                 ...(title && { title }),
                 ...(description && { description }),
-                ...(assignee && { assignee }),
-                ...(status && { status })
+                ...(assignees && { assignees }),
+                ...(status && { status: status?.name || status }),
+                ...(issueType && { issueType }),
+                ...(priority && { priority }),
+                ...(storyPoints !== undefined && { storyPoints }),
             }
         },
         { new: true, runValidators: true }
