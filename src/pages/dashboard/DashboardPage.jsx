@@ -14,6 +14,7 @@ import {
   Loader2,
   TrendingUp
 } from "lucide-react";
+import { PendingInvitations } from "@/components/dashboard/PendingInvitations";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -122,6 +123,10 @@ export default function DashboardPage() {
             New Project
           </Link>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <PendingInvitations onActionCompleted={() => fetchDashboardStats(true)} />
       </div>
 
       {/* Main Stats Grid */}

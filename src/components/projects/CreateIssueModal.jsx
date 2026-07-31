@@ -33,7 +33,7 @@ export function CreateIssueModal({ projectId, members = [] }) {
         assignees: assigneeId ? [assigneeId] : [],
       };
 
-      const res = await apiClient.post(`/tasks/project/${projectId}`, payload);
+      const res = await apiClient.post(`/tasks/${projectId}`, payload);
       const createdTask = res.data?.data || res.data;
       addTask(createdTask);
       toast.success("Issue created successfully!");

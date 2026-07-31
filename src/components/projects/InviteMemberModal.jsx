@@ -7,13 +7,13 @@ import { X, Loader2, UserPlus, Mail, Shield } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "project_manager", label: "Project Manager", desc: "Full project admin access" },
-  { value: "admin", label: "Admin", desc: "Can manage tasks and members" },
-  { value: "member", label: "Member", desc: "Can view and work on tasks" },
+  { value: "developer", label: "Developer", desc: "Can view and work on tasks" },
+  { value: "viewer", label: "Viewer", desc: "Can only view tasks" },
 ];
 
 export function InviteMemberModal({ isOpen, onClose, projectId, onMemberAdded }) {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("member");
+  const [role, setRole] = useState("developer");
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -31,7 +31,7 @@ export function InviteMemberModal({ isOpen, onClose, projectId, onMemberAdded })
       await apiClient.post(`/projects/${projectId}/members`, { email: email.trim(), role });
       toast.success(`Invitation sent to ${email}`);
       setEmail("");
-      setRole("member");
+      setRole("developer");
       onMemberAdded?.();
       onClose();
     } catch (err) {
