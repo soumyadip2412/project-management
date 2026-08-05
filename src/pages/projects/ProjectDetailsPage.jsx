@@ -28,6 +28,8 @@ import { IssueDetailDrawer } from "@/components/projects/IssueDetailDrawer";
 import { CreateIssueModal } from "@/components/projects/CreateIssueModal";
 import { InviteMemberModal } from "@/components/projects/InviteMemberModal";
 
+import { DeleteProjectModal } from "@/components/projects/DeleteProjectModal";
+
 const ROLE_OPTIONS = ["project_manager", "admin", "member"];
 
 const ROLE_COLORS = {
@@ -53,17 +55,42 @@ export default function ProjectDetailsPage() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("board");
 
   // Member management state
   const [members, setMembers] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState(null);
+  const [removingMember, setRemovingMember] = useState(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(null);
-  const [removingMember, setRemovingMember] = useState(null);
-  const [updatingRole, setUpdatingRole] = useState(null);
+  
+  // Issue management state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const { setTasks, openCreateModal } = useTaskStore();
+  const { tasks, setTasks, fetchTasks, openCreateModal } = useTaskStore();
+
+  const fetchProjectDetails = async () => {
+    try {
+      const res = await apiClient.get(`/projects/${projectId}`);
+      setProject(res.data?.data || res.data);
+    } catch (error) {
+      toast.error("Failed to fetch project details");
+      navigate("/app/projects");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTasksLocal = async () => {
+    try {
+      await fetchTasks(projectId);
+    } catch (err) {
+      setTasks([]);
+    }
+  };
 
   // Determine if current user is admin of this project
   const currentMember = project?.members?.find(
@@ -77,30 +104,6 @@ export default function ProjectDetailsPage() {
     currentMember?.role === "admin" ||
     project?.owner?.toString() === user?._id?.toString() ||
     user?.systemRole === "super_admin";
-
-  const fetchProjectDetails = async () => {
-    setLoading(true);
-    try {
-      const res = await apiClient.get(`/projects/${projectId}`);
-      const projectData = res.data?.data || res.data;
-      setProject(projectData);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to load project details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTasks = async () => {
-    try {
-      const res = await apiClient.get(`/tasks/${projectId}`);
-      const taskData = res.data?.data;
-      const list = Array.isArray(taskData) ? taskData : taskData?.tasks || [];
-      setTasks(list);
-    } catch (err) {
-      setTasks([]);
-    }
-  };
 
   const fetchMembers = async () => {
     setMembersLoading(true);
@@ -121,7 +124,7 @@ export default function ProjectDetailsPage() {
   useEffect(() => {
     if (projectId) {
       fetchProjectDetails();
-      fetchTasks();
+      fetchTasksLocal();
     }
   }, [projectId]);
 
@@ -132,18 +135,11 @@ export default function ProjectDetailsPage() {
   }, [activeTab, projectId]);
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this project? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
     setDeleting(true);
     try {
       await apiClient.delete(`/projects/${projectId}`);
       toast.success("Project deleted successfully");
+      setIsDeleteModalOpen(false);
       navigate("/app/projects");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete project");
@@ -252,12 +248,12 @@ export default function ProjectDetailsPage() {
           </button>
           {isAdmin && (
             <button
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
               disabled={deleting}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-2 text-sm font-semibold transition-all disabled:opacity-50"
               title="Delete Project"
             >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -479,6 +475,13 @@ export default function ProjectDetailsPage() {
           fetchMembers();
           fetchProjectDetails();
         }}
+      />
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        onClose={setIsDeleteModalOpen}
+        project={project}
+        onConfirm={handleDelete}
+        deleting={deleting}
       />
     </div>
   );
