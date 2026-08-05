@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Moon, Menu, X } from 'lucide-react'
+import { ArrowRight, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import MoonIcon from './icons/moon-icon'
 
 function GithubIcon() {
   return (
@@ -82,7 +83,7 @@ export default function Navbar() {
                 aria-label="Toggle theme"
                 style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center' }}
               >
-                <Moon size={19} />
+                <MoonIcon size={19} />
               </button>
 
               {/* GitHub link */}

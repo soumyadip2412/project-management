@@ -38,7 +38,7 @@ export default function Footer() {
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
                 onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
               >
-                <GithubIcon size={25} />
+                <GithubIcon size={22} />
               </a>
             </div>
           </div>
