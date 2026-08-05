@@ -124,6 +124,7 @@ export const NotificationTypeEnum = {
     APPROVAL_GRANTED: "approval_granted",
     APPROVAL_REJECTED: "approval_rejected",
     PROJECT_ARCHIVED: "project_archived",
+    PROJECT_DELETED: "project_deleted",
     DUE_DATE_APPROACHING: "due_date_approaching",
 };
 export const AvailableNotificationTypes = Object.values(NotificationTypeEnum);

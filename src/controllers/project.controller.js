@@ -138,30 +138,46 @@ const updateProject = async (req, res, next) => {
     }
 };
 
-// Delete project (only owner, project manager, or system admin)
-const deleteProject = async (req, res, next) => {
-    try {
-        const { projectId } = req.params;
-        const userId = req.user._id;
+import { Notification } from "../models/notification.models.js";
 
-        const project = await Project.findById(projectId);
-        if (!project) return res.status(404).json({ message: 'Project not found' });
+// Delete project (only owner or system admin)
+const deleteProject = asynchandler(async (req, res, next) => {
+    const { projectId } = req.params;
+    const userId = req.user._id;
 
-        const canDelete = isProjectOwner(project, userId) || 
-                          isProjectAdmin(project, userId) || 
-                          req.user.systemRole === 'super_admin' || 
-                          req.user.role === 'admin';
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
 
-        if (!canDelete) {
-            return res.status(403).json({ message: 'Not authorized to delete this project' });
-        }
+    // Hierarchy: Only project owner or system super admin can delete the project
+    const canDelete = isProjectOwner(project, userId) || 
+                      req.user.systemRole === 'super_admin';
 
-        await project.deleteOne();
-        res.json({ success: true, message: 'Project deleted successfully' });
-    } catch (err) {
-        next(err);
+    if (!canDelete) {
+        return res.status(403).json({ message: 'Not authorized to delete this project. Only the project owner can perform this action.' });
     }
-};
+
+    // Get members to notify before deletion
+    const membersToNotify = project.members.filter(m => m.user.toString() !== userId.toString());
+    const projectName = project.name;
+    const deletedTime = new Date();
+
+    await project.deleteOne();
+
+    // Generate notifications
+    if (membersToNotify.length > 0) {
+        const notifications = membersToNotify.map(m => ({
+            recipient: m.user,
+            type: "project_deleted",
+            title: `Project "${projectName}" was deleted`,
+            body: `The project "${projectName}" was deleted by ${req.user.fullName || req.user.username} on ${deletedTime.toLocaleString()}`,
+            entityType: "project",
+            actor: userId
+        }));
+        await Notification.insertMany(notifications);
+    }
+
+    res.json({ success: true, message: 'Project deleted successfully' });
+});
 
 
 //Get project members 
