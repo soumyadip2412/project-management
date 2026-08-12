@@ -70,19 +70,19 @@ export default function TrustStrip() {
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       style={{
-        background: '#141414',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--bg-surface)',
+        borderTop: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
         padding: '24px 48px',
         width: '100%',
       }}
     >
       <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 48, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <span style={{ fontSize: 14, color: '#6b7280', fontWeight: 600, whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
+        <span style={{ fontSize: 14, color: 'var(--text-tertiary)', fontWeight: 600, whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
           Built with modern technologies
         </span>
 
-        <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} className="hidden sm:block" />
+        <div style={{ width: 1, height: 32, background: 'var(--border)', flexShrink: 0 }} className="hidden sm:block" />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 64, flexWrap: 'wrap', justifyContent: 'center' }}>
           {TECH.map(tech => (
@@ -90,11 +90,11 @@ export default function TrustStrip() {
               key={tech.name}
               style={{
                 display: 'flex', alignItems: 'center', gap: 9,
-                color: '#9ca3af', fontSize: 14, fontWeight: 600,
+                color: 'var(--text-secondary)', fontSize: 14, fontWeight: 600,
                 cursor: 'default', transition: 'color 0.15s',
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-heading)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
             >
               {tech.logo}
               {tech.name}

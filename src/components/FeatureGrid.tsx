@@ -1,117 +1,55 @@
-import { motion } from 'framer-motion'
-import { Layers, Users, MessageSquare, Bell, Shield, Upload } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowUpRight, Check, ChevronDown, Search } from 'lucide-react'
+import { useState } from 'react'
 
-const FEATURES = [
-  {
-    icon: <Layers size={24} />,
-    iconColor: '#f59e0b', iconBg: 'rgba(245,158,11,0.12)',
-    title: 'Kanban Boards & Sprints',
-    desc: 'Drag-and-drop task management with sprint planning and burndown charts. Move work through your pipeline visually.',
-    tag: 'Core',
-  },
-  {
-    icon: <Users size={24} />,
-    iconColor: '#6366f1', iconBg: 'rgba(99,102,241,0.12)',
-    title: 'Team Workspaces',
-    desc: 'Create multiple projects under one workspace. Assign roles — Admin, Project Admin, or Member.',
-    tag: 'Teams',
-  },
-  {
-    icon: <MessageSquare size={24} />,
-    iconColor: '#22c55e', iconBg: 'rgba(34,197,94,0.12)',
-    title: 'Threaded Comments & @Mentions',
-    desc: 'Thread discussions directly on tasks, mention teammates, and resolve feedback fast.',
-    tag: 'Collaboration',
-  },
-  {
-    icon: <Bell size={24} />,
-    iconColor: '#ec4899', iconBg: 'rgba(236,72,153,0.12)',
-    title: 'Notifications & Activity Feed',
-    desc: 'Instant notifications for task updates, mentions, and sprint events with a full activity timeline.',
-    tag: 'Updates',
-  },
-  {
-    icon: <Shield size={24} />,
-    iconColor: '#8b5cf6', iconBg: 'rgba(139,92,246,0.12)',
-    title: 'Role-Based Access Control',
-    desc: 'Three-tier permission system with Admin, Project Admin, and Member roles for granular access control.',
-    tag: 'Security',
-  },
-  {
-    icon: <Upload size={24} />,
-    iconColor: '#06b6d4', iconBg: 'rgba(6,182,212,0.12)',
-    title: 'File Attachments',
-    desc: 'Attach multiple files to tasks with metadata tracking. Secure upload handling with Multer middleware.',
-    tag: 'Files',
-  },
+type Feature = {
+  number: string
+  title: string
+  description: string
+  eyebrow: string
+  heading: string
+  copy: string
+  capabilities: string[]
+  visual: 'workspace' | 'issue' | 'sprint' | 'collaboration' | 'analytics' | 'search' | 'time' | 'workflow'
+}
+
+const FEATURES: Feature[] = [
+  { number: '01', title: 'Projects & Workspaces', description: 'Organize teams, projects and workflows.', eyebrow: 'Projects & Workspaces', heading: 'Everything your team needs, organized in one place.', copy: 'Bring every project, team and workflow into a calm, connected home for the work that matters.', capabilities: ['Workspaces', 'Projects', 'Roles & permissions', 'Members', 'Workflows'], visual: 'workspace' },
+  { number: '02', title: 'Issue Management', description: 'Turn ideas into clear, trackable work.', eyebrow: 'Issue Management', heading: 'A clear path from the first idea to done.', copy: 'Give every piece of work an owner, context and momentum without burying your team in process.', capabilities: ['Issues', 'Priorities', 'Subtasks', 'Labels', 'Watchers'], visual: 'issue' },
+  { number: '03', title: 'Agile Sprints', description: 'Plan confidently and ship predictably.', eyebrow: 'Agile Sprints', heading: 'Keep every sprint focused and on track.', copy: 'Plan capacity, see progress at a glance and make delivery feel far more predictable.', capabilities: ['Sprint planning', 'Story points', 'Velocity', 'Burndown', 'Backlog'], visual: 'sprint' },
+  { number: '04', title: 'Team Collaboration', description: 'Keep conversations connected to work.', eyebrow: 'Team Collaboration', heading: 'Decisions live where the work happens.', copy: 'Keep feedback, mentions and activity in context so nobody has to hunt for the latest answer.', capabilities: ['Comments', 'Mentions', 'Reactions', 'Activity', 'Notifications'], visual: 'collaboration' },
+  { number: '05', title: 'Insights & Analytics', description: 'Understand progress without the digging.', eyebrow: 'Insights & Analytics', heading: 'Know how work is moving, instantly.', copy: 'A focused view of delivery health helps you spot momentum and blockers before they become surprises.', capabilities: ['Project health', 'Completion', 'Activity', 'Reports', 'Trends'], visual: 'analytics' },
+  { number: '06', title: 'Powerful Search', description: 'Find anything across Project Camp.', eyebrow: 'Powerful Search', heading: 'The answer is always just a few keystrokes away.', copy: 'Jump straight to projects, issues and teammates with a fast, beautifully simple command palette.', capabilities: ['Global search', 'Quick jump', 'Recent items', 'People', 'Keyboard first'], visual: 'search' },
+  { number: '07', title: 'Time Tracking', description: 'Track effort, estimates and actual work without leaving the project.', eyebrow: 'Time Tracking', heading: 'Keep work estimates grounded in reality.', copy: 'Know where your team’s time is going, compare effort to estimates and bring clarity to every project.', capabilities: ['Time estimates', 'Time logs', 'Time spent', 'Remaining work', 'Work history'], visual: 'time' },
+  { number: '08', title: 'Custom Workflows', description: 'Shape Project Camp around the way your team actually works.', eyebrow: 'Custom Workflows', heading: 'A workflow that fits your team, not the other way around.', copy: 'Build statuses, fields and approval steps that support your process without forcing it into a rigid system.', capabilities: ['Custom statuses', 'Priorities', 'Issue types', 'Custom fields', 'Approvals'], visual: 'workflow' },
 ]
 
-export default function FeatureGrid() {
-  return (
-    <section id="features" style={{ background: '#111111', padding: '100px 48px', width: '100%' }}>
-      <div style={{ width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ fontSize: 12, letterSpacing: '0.12em', color: '#f59e0b', fontWeight: 700, marginBottom: 14, textTransform: 'uppercase' }}
-          >
-            Everything you need
-          </motion.p>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.08 }}
-            style={{ fontSize: 'clamp(32px, 4.5vw, 48px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: 16 }}
-          >
-            Built for teams that ship fast
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.14 }}
-            style={{ fontSize: 16, color: '#9ca3af', maxWidth: 580, margin: '0 auto' }}
-          >
-            Everything your team needs to plan work, collaborate in real time, and deliver — in one focused product.
-          </motion.p>
-        </div>
+const Avatar = ({ name, color = '#d97706' }: { name: string; color?: string }) => <span className="pc-avatar" style={{ background: color }}>{name}</span>
+const Bar = ({ value, color = '#fbbf24' }: { value: number; color?: string }) => <span className="pc-bar"><i style={{ width: `${value}%`, background: color }} /></span>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 24, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              style={{
-                padding: '32px 28px',
-                background: '#161616',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 16,
-                cursor: 'default',
-                transition: 'border-color 0.2s, transform 0.2s',
-              }}
-              whileHover={{ y: -4, borderColor: 'rgba(245,158,11,0.25)' } as any}
-            >
-              <div style={{
-                width: 48, height: 48, borderRadius: 12,
-                background: f.iconBg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: f.iconColor, marginBottom: 20,
-              }}>
-                {f.icon}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: f.iconColor, marginBottom: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{f.tag}</div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 12 }}>{f.title}</h3>
-              <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.65 }}>{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+function TimeEntry({ avatar, name, color, time, note }: { avatar: string; name: string; color?: string; time: string; note: string }) { return <div className="pc-time-entry"><Avatar name={avatar} color={color} /><span><b>{name}</b><small>{note}</small></span><strong>{time}</strong></div> }
+function WorkflowNode({ label, color }: { label: string; color: string }) { return <div className="pc-workflow-node"><i style={{ background: color }} /><b>{label}</b><span>⠿</span></div> }
+
+function ProductVisual({ kind }: { kind: Feature['visual'] }) {
+  if (kind === 'time') return <div className="pc-app pc-time"><div className="pc-app-top"><span className="pc-crumb">Platform / <b>PROJ-142</b></span><span className="pc-pill green">IN PROGRESS</span></div><div className="pc-time-title"><div><small>TIME TRACKING · PROJ-142</small><h4>Fix authentication flow</h4></div><span className="pc-clock">◷</span></div><div className="pc-time-layout"><div><div className="pc-time-stats"><b>8h <small>Estimated</small></b><b>5h 20m <small>Logged</small></b><b>2h 40m <small>Remaining</small></b></div><Bar value={67} /><strong className="pc-percent">67% of estimate logged</strong></div><div className="pc-time-history"><small>RECENT WORK</small><TimeEntry avatar="DJ" name="Dhruv Jain" time="2h 15m" note="Today, 10:24" /><TimeEntry avatar="AM" color="#4f46e5" name="Alex Morgan" time="1h 40m" note="Yesterday" /><TimeEntry avatar="DJ" name="Dhruv Jain" time="1h 25m" note="Apr 10" /></div></div></div>
+  if (kind === 'workflow') return <div className="pc-app pc-workflow"><div className="pc-app-top"><span className="pc-crumb">Website Redesign <b>/</b> Settings</span><button>Save changes</button></div><div className="pc-workflow-layout"><div className="pc-flow"><small>PROJECT WORKFLOW</small><WorkflowNode label="Backlog" color="#64748b" /><WorkflowNode label="Todo" color="#60a5fa" /><WorkflowNode label="In progress" color="#fbbf24" /><WorkflowNode label="Code review" color="#a78bfa" /><WorkflowNode label="QA" color="#38bdf8" /><WorkflowNode label="Done" color="#34d399" /></div><div className="pc-workflow-options"><small>ISSUE TYPES</small><div className="pc-type-chips"><b>● Bug</b><b>● Task</b><b>● Story</b><b>● Epic</b></div><small>PRIORITIES</small><div className="pc-priorities"><span><i className="critical" /> Critical</span><span><i className="high" /> High</span><span><i className="medium" /> Medium</span><span><i className="low" /> Low</span></div></div></div></div>
+  if (kind === 'workspace') return <div className="pc-app"><aside><b className="pc-logo">P</b><span className="pc-side-active">▦</span><span>◷</span><span>⌕</span></aside><div className="pc-workspace"><div className="pc-app-top"><span className="pc-crumb">Project Camp <b>/</b> Acme Studio</span><span className="pc-dots">•••</span></div><div className="pc-project-head"><div><small>WORKSPACE</small><h4>Good morning, team <span>✦</span></h4></div><div className="pc-avatars"><Avatar name="DJ" /><Avatar name="AM" color="#4f46e5" /><Avatar name="+8" color="#334155" /></div></div><div className="pc-mini-stats"><b>12 <small>Projects</small></b><b>24 <small>Members</small></b><b>84% <small>On track</small></b></div><div className="pc-cards"><ProjectCard name="Website Redesign" value={73} color="#f59e0b" /><ProjectCard name="Mobile App" value={48} color="#6366f1" /><ProjectCard name="AI Research" value={91} color="#22c55e" /></div></div></div>
+  if (kind === 'issue') return <div className="pc-app pc-detail"><div className="pc-app-top"><span className="pc-crumb">Projects / Platform / <b>PROJ-142</b></span><span>•••</span></div><div className="pc-issue-layout"><div><small className="pc-key">PROJ-142</small><h4>Fix authentication flow</h4><div className="pc-status-row"><b className="pc-pill amber">IN REVIEW</b><b className="pc-pill red">HIGH</b></div><p className="pc-muted">The OAuth callback is failing for users with an existing session.</p><div className="pc-subtasks"><strong>Subtasks <em>3 / 5</em></strong><Bar value={60} /><span><Check size={12} /> Add session guard</span><span><Check size={12} /> Test callback states</span><span>○ Update error handling</span></div></div><div className="pc-properties"><small>ASSIGNEE</small><div><Avatar name="DJ" /> Dhruv Jain</div><small>LABELS</small><div><b className="pc-tag">backend</b><b className="pc-tag">auth</b></div><small>WATCHING</small><div className="pc-avatars"><Avatar name="AM" color="#4f46e5" /><Avatar name="RS" color="#0f766e" /> <span>+3</span></div></div></div></div>
+  if (kind === 'sprint') return <div className="pc-app pc-sprint"><div className="pc-app-top"><span className="pc-crumb">Platform team <b>/</b> Sprint 08</span><span className="pc-pill green">ACTIVE</span></div><div className="pc-sprint-grid"><div><small>CURRENT SPRINT</small><h4>Sprint 08 <span>Apr 08 — Apr 19</span></h4><div className="pc-points"><b>23 <small>Story points</small></b><b>18 <small>Completed</small></b><b>5 <small>Remaining</small></b></div><Bar value={78} /><strong className="pc-percent">78% complete</strong></div><div className="pc-chart"><small>BURNDOWN</small><svg viewBox="0 0 220 104" aria-label="Sprint burndown chart"><path d="M4 15 L48 35 L82 47 L123 69 L151 69 L187 88 L216 88" fill="none" stroke="#fbbf24" strokeWidth="3" /><path d="M4 15 L216 88" fill="none" stroke="#475569" strokeDasharray="4 5" /></svg><span>MON</span><span>FRI</span></div></div><div className="pc-task-list"><span><i /> PROJ-142 Fix authentication flow <b>5</b></span><span><i /> PROJ-138 Update billing settings <b>3</b></span><span><i /> PROJ-151 Design empty states <b>2</b></span></div></div>
+  if (kind === 'collaboration') return <div className="pc-app pc-collab"><div className="pc-app-top"><span className="pc-crumb"><b>PROJ-142</b> / Activity</span><span className="pc-avatars"><Avatar name="DJ" /><Avatar name="AM" color="#4f46e5" /> <small>5 watching</small></span></div><div className="pc-comments"><Comment avatar="DJ" name="Dhruv Jain" time="2m" text="Authentication fix is ready for review." /><Comment avatar="AM" name="Alex Morgan" color="#4f46e5" time="just now" text="Looks good. Approved — nice work!" /><div className="pc-reaction">👍 <b>3</b> &nbsp; 🎉 <b>1</b></div></div><div className="pc-activity"><small>ACTIVITY</small><span><i /> Dhruv moved issue to <b>In Review</b><em>2m</em></span><span><i /> Alex added a comment <em>now</em></span></div></div>
+  if (kind === 'analytics') return <div className="pc-app pc-analytics"><div className="pc-app-top"><span className="pc-crumb">Acme Studio <b>/</b> Overview</span><span className="pc-range">Last 30 days⌄</span></div><div className="pc-kpis"><Kpi value="12" label="Projects" trend="+2" /><Kpi value="48" label="Active tasks" trend="+12%" /><Kpi value="73%" label="Completion" trend="+8%" /><Kpi value="24" label="Members" trend="+3" /></div><div className="pc-analytics-row"><div className="pc-line-chart"><small>COMPLETION</small><svg viewBox="0 0 330 120"><defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#f59e0b" stopOpacity=".28"/><stop offset="1" stopColor="#f59e0b" stopOpacity="0"/></linearGradient></defs><path d="M0 104 C30 92 42 100 70 78 S110 82 137 53 S178 73 207 42 S246 55 270 27 S308 30 330 10 L330 120 L0 120Z" fill="url(#fill)"/><path d="M0 104 C30 92 42 100 70 78 S110 82 137 53 S178 73 207 42 S246 55 270 27 S308 30 330 10" fill="none" stroke="#fbbf24" strokeWidth="3"/></svg></div><div className="pc-recent"><small>RECENT ACTIVITY</small><span><i /> PROJ-142 completed</span><span><i /> PROJ-138 moved to review</span><span><i /> Mobile App updated</span></div></div></div>
+  return <div className="pc-app pc-search"><div className="pc-search-modal"><div className="pc-search-input"><Search size={18} /><span>Search anything...</span><kbd>⌘ K</kbd></div><div className="pc-results"><small>RECENT</small><Result text="PROJ-142" meta="Fix authentication flow" icon="◒" /><Result text="Website Redesign" meta="Project" icon="▦" /><small>PEOPLE</small><Result text="Dhruv Jain" meta="Engineering" icon="DJ" /><small>ISSUES</small><Result text="PROJ-143" meta="OAuth callback bug" icon="!" /></div><div className="pc-search-footer"><span><kbd>↵</kbd> open</span><span><kbd>↑↓</kbd> navigate</span><span><kbd>esc</kbd> close</span></div></div></div>
+}
+
+function ProjectCard({ name, value, color }: { name: string; value: number; color: string }) { return <div className="pc-project-card"><span className="pc-project-icon" style={{ background: color }} /> <b>{name}</b><small>{value}%</small><Bar value={value} color={color} /><div><Avatar name="DJ" /><Avatar name="AM" color="#4f46e5" /></div></div> }
+function Comment({ avatar, name, color, time, text }: { avatar: string; name: string; color?: string; time: string; text: string }) { return <div className="pc-comment"><Avatar name={avatar} color={color} /><div><b>{name} <small>{time}</small></b><p>{text}</p></div></div> }
+function Kpi({ value, label, trend }: { value: string; label: string; trend: string }) { return <div><b>{value}</b><span>{label}</span><small>↑ {trend}</small></div> }
+function Result({ text, meta, icon }: { text: string; meta: string; icon: string }) { return <div className="pc-result"><i>{icon}</i><b>{text}<small>{meta}</small></b><span>↵</span></div> }
+
+export default function FeatureGrid() {
+  const [active, setActive] = useState(0)
+  const reduceMotion = useReducedMotion()
+  const feature = FEATURES[active]
+  const changeFeature = (index: number) => setActive(index)
+  return <section id="features" className="pc-features"><div className="pc-features-intro"><p>Features</p><h2>Everything your team needs<br />to ship better.</h2></div><div className="pc-explorer"><div className="pc-feature-list" role="tablist" aria-label="Project Camp features">{FEATURES.map((item, index) => <button key={item.number} id={`feature-tab-${index}`} className={`pc-feature-button ${active === index ? 'is-active' : ''}`} role="tab" aria-selected={active === index} aria-controls={`feature-panel-${index}`} onClick={() => changeFeature(index)} onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === 'ArrowRight') { event.preventDefault(); changeFeature((index + 1) % FEATURES.length) } if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') { event.preventDefault(); changeFeature((index + FEATURES.length - 1) % FEATURES.length) } if (event.key === 'Home') { event.preventDefault(); changeFeature(0) } if (event.key === 'End') { event.preventDefault(); changeFeature(FEATURES.length - 1) } }}><span className="pc-feature-number">{item.number}</span><span className="pc-feature-copy"><strong>{item.title}</strong><small>{item.description}</small></span><ArrowUpRight className="pc-feature-arrow" size={17} /><ChevronDown className="pc-mobile-chevron" size={18} /></button>)}</div><div className="pc-feature-panel" id={`feature-panel-${active}`} role="tabpanel" aria-labelledby={`feature-tab-${active}`}><AnimatePresence mode="wait"><motion.div key={feature.number} initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: -10 }} transition={{ duration: .36, ease: 'easeOut' }}><div className="pc-panel-content"><p>{feature.eyebrow}</p><h3>{feature.heading}</h3><div className="pc-visual-mobile"><ProductVisual kind={feature.visual} /></div><div className="pc-panel-bottom"><span>{feature.copy}</span><div>{feature.capabilities.map(capability => <b key={capability}>{capability}</b>)}</div></div></div><div className="pc-visual-desktop"><ProductVisual kind={feature.visual} /></div></motion.div></AnimatePresence></div></div></section>
 }

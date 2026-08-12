@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import MoonIcon from './icons/moon-icon'
 
 function GithubIcon() {
   return (
@@ -25,6 +24,14 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
+  const navBg = scrolled ? 'rgba(17,17,17,0.96)' : '#111111'
+
+  const textMuted = '#9ca3af'
+  const textDefault = '#d1d5db'
+  const borderColor = 'rgba(255,255,255,0.07)'
+  const logoTextColor = '#ffffff'
+  const mobileBg = 'rgba(17,17,17,0.98)'
+
   return (
     <>
       <motion.nav
@@ -33,8 +40,8 @@ export default function Navbar() {
         transition={{ duration: 0.45, ease: 'easeOut' }}
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          background: scrolled ? 'rgba(17,17,17,0.96)' : '#111111',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: navBg,
+          borderBottom: `1px solid ${borderColor}`,
           backdropFilter: scrolled ? 'blur(16px)' : 'none',
         }}
       >
@@ -53,23 +60,23 @@ export default function Navbar() {
                   <polygon points="13,2 4,14 12,14 11,22 20,10 12,10" />
                 </svg>
               </div>
-              <span style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: logoTextColor, letterSpacing: '-0.02em' }}>
                 Project Camp
               </span>
             </Link>
 
-            {/* Desktop nav links - nicely centered across width */}
+            {/* Desktop nav links */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 40, flex: 1, justifyContent: 'center' }} className="hidden md:flex">
               {NAV_LINKS.map(link => (
                 <a
                   key={link}
                   href={`#${link.toLowerCase()}`}
                   style={{
-                    fontSize: 14, color: '#9ca3af', textDecoration: 'none',
+                    fontSize: 14, color: textMuted, textDecoration: 'none',
                     fontWeight: 500, transition: 'color 0.15s',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                  onMouseLeave={e => (e.currentTarget.style.color = textMuted)}
                 >
                   {link}
                 </a>
@@ -78,13 +85,6 @@ export default function Navbar() {
 
             {/* Right side */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              {/* Moon icon */}
-              <button
-                aria-label="Toggle theme"
-                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center' }}
-              >
-                <MoonIcon size={19} />
-              </button>
 
               {/* GitHub link */}
               <a
@@ -93,11 +93,11 @@ export default function Navbar() {
                 rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  color: '#d1d5db', textDecoration: 'none', fontSize: 14, fontWeight: 500,
+                  color: textDefault, textDecoration: 'none', fontSize: 14, fontWeight: 500,
                   transition: 'color 0.15s',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#d1d5db')}
+                onMouseLeave={e => (e.currentTarget.style.color = textDefault)}
                 className="hidden md:flex"
               >
                 <GithubIcon />
@@ -126,7 +126,7 @@ export default function Navbar() {
               {/* Mobile toggle */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 6 }}
+                style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: 6 }}
                 className="md:hidden"
                 aria-label="Menu"
               >
@@ -146,20 +146,20 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             style={{
               position: 'fixed', top: 68, left: 0, right: 0, zIndex: 40,
-              background: 'rgba(17,17,17,0.98)', borderBottom: '1px solid rgba(255,255,255,0.07)',
+              background: mobileBg, borderBottom: `1px solid ${borderColor}`,
               backdropFilter: 'blur(16px)', overflow: 'hidden',
             }}
           >
             <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 18 }}>
               {NAV_LINKS.map(link => (
                 <a key={link} href={`#${link.toLowerCase()}`} onClick={() => setMobileOpen(false)}
-                  style={{ color: '#d1d5db', textDecoration: 'none', fontSize: 16, fontWeight: 500 }}>
+                  style={{ color: textDefault, textDecoration: 'none', fontSize: 16, fontWeight: 500 }}>
                   {link}
                 </a>
               ))}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ borderTop: `1px solid ${borderColor}`, paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button onClick={() => { navigate('/login'); setMobileOpen(false) }}
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '12px 0', color: '#d1d5db', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+                  style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${borderColor}`, borderRadius: 8, padding: '12px 0', color: textDefault, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
                   Sign in
                 </button>
                 <button onClick={() => { navigate('/register'); setMobileOpen(false) }}

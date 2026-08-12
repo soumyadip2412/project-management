@@ -570,7 +570,7 @@ export default function Hero() {
       style={{
         height: '260vh',
         position: 'relative',
-        background: '#111111',
+        background: 'var(--bg-base)',
       }}
     >
       {/* Sticky container for smooth scroll transition */}
